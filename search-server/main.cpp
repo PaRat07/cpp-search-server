@@ -11,6 +11,7 @@ using namespace std;
 
 const int MAX_RESULT_DOCUMENT_COUNT = 5;
 const double CALCULATING_ERROR = 1e-6;
+
 template<typename Key, typename Value>
 ostream& operator<<(ostream& out, const pair<Key, Value>& container) {
 	out << container.first << ": " << container.second;
