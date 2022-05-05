@@ -10,6 +10,7 @@
 using namespace std;
 
 const int MAX_RESULT_DOCUMENT_COUNT = 5;
+const double CALCULATING_ERROR = 1e-6;
 template<typename Key, typename Value>
 ostream& operator<<(ostream& out, const pair<Key, Value>& container) {
 	out << container.first << ": " << container.second;
@@ -116,7 +117,7 @@ public:
 		: stop_words_(MakeUniqueNonEmptyStrings(stop_words)) {
 		for (const string& word : stop_words) {
 			if (!IsValidWord(word)) {
-				throw invalid_argument("invalid stop words");
+				throw invalid_argument("invalid stop word: " + word);
 			}
 		}
 	}
@@ -124,9 +125,6 @@ public:
 
 	explicit SearchServer(const string& stop_words_text)
 		: SearchServer(SplitIntoWords(stop_words_text)){  // Invoke delegating constructor from string container
-		if (!IsValidWord(stop_words_text)) {
-			throw invalid_argument("invalid stop words");
-		}
 	}
 
 	void SetStopWords(const string& text) {
@@ -139,8 +137,11 @@ public:
 		if (!IsValidWord(document)) {
 			throw invalid_argument("invalid document");
 		}
-		if (documents_.count(document_id) or document_id < 0) {
-			throw invalid_argument("invalid document id");
+		if (document_id < 0) {
+			throw invalid_argument("document id smaller than zero");
+		}
+		if (documents_.count(document_id)) {
+			throw invalid_argument("this document id exist");
 		}
 		const vector<string> words = SplitIntoWordsNoStop(document);
 		const double inv_word_count = 1.0 / words.size();
@@ -161,7 +162,7 @@ public:
 
 		sort(matched_documents.begin(), matched_documents.end(),
 			[](const Document& lhs, const Document& rhs) {
-			if (abs(lhs.relevance - rhs.relevance) < 1e-6) {
+			if (abs(lhs.relevance - rhs.relevance) < CALCULATING_ERROR) {
 				return lhs.rating > rhs.rating;
 			}
 			else {
