@@ -21,7 +21,7 @@ int RequestQueue::GetNoResultRequests() const {
 }
 
 // возможно, здесь вам понадобится что-то ещё
-void RequestQueue::ControlSize() {
+void RequestQueue::UpdateStats() {
 	while (requests_.size() > min_in_day_) {
 		if (requests_.front().empty) {
 			--clear_ans;

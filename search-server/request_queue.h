@@ -19,7 +19,7 @@ public:
 		}
 
 		requests_.push_back({ ans, ans.empty() });
-		ControlSize();
+		UpdateStats();
 		return ans;
 	}
 
@@ -38,5 +38,5 @@ private:
 	int clear_ans = 0;
 	const SearchServer& search_server_;
 	// возможно, здесь вам понадобится что-то ещё
-	void ControlSize();
+	void UpdateStats();
 };

@@ -1,6 +1,8 @@
 #pragma once
 #include <iostream>
 #include <string>
+#include <vector>
+
 struct Document {
 	Document();
 
@@ -19,3 +21,5 @@ enum class DocumentStatus {
 	BANNED,
 	REMOVED,
 };
+
+void PrintMatchDocumentResult(int document_id, const std::vector<std::string>& words, DocumentStatus status);
