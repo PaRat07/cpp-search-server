@@ -6,6 +6,7 @@
 #include <set>
 #include <cmath>
 #include <algorithm>
+#include <numeric>
 #include <iostream>
 #include <stdexcept>
 
@@ -35,19 +36,26 @@ public:
 
 	int GetDocumentCount() const;
 
-	int GetDocumentId(int index) const;
+    std::set<int>::const_iterator begin() const;
 
-	std::tuple<std::vector<std::string>, DocumentStatus> MatchDocument(const std::string& raw_query, int document_id) const;
+    std::set<int>::const_iterator end() const;
 
+    const std::map<std::string, double>& GetWordFrequencies(int document_id) const;
+
+    void RemoveDocument(int document_id);
+
+    std::tuple<std::vector<std::string>, DocumentStatus> MatchDocument(const std::string& raw_query, int document_id) const;
 private:
 	struct DocumentData {
 		int rating;
 		DocumentStatus status;
 	};
+    std::map<std::string, double> empty_map_;
+    std::map<int, std::map<std::string, double>> documents_words_with_freq_;
 	const std::set<std::string> stop_words_;
 	std::map<std::string, std::map<int, double>> word_to_document_freqs_;
 	std::map<int, DocumentData> documents_;
-	std::vector<int> document_ids_;
+	std::set<int> document_ids_;
 
 	bool IsStopWord(const std::string& word) const;
 
@@ -90,25 +98,26 @@ SearchServer::SearchServer(const StringContainer& stop_words)
 }
 
 template <typename DocumentPredicate>
+
 std::vector<Document> SearchServer::FindTopDocuments(const std::string& raw_query, DocumentPredicate document_predicate) const {
-	const auto query = ParseQuery(raw_query);
+    const auto query = ParseQuery(raw_query);
+    auto matched_documents = FindAllDocuments(query, document_predicate);
 
-	auto matched_documents = FindAllDocuments(query, document_predicate);
+    std::sort(matched_documents.begin(), matched_documents.end(), [](const Document& lhs, const Document& rhs) {
+        const double error = 1e-6;
+        if (std::abs(lhs.relevance - rhs.relevance) < error) {
+            return lhs.rating > rhs.rating;
+        }
+        else {
+            return lhs.relevance > rhs.relevance;
+        }
+    });
 
-	std::sort(matched_documents.begin(), matched_documents.end(), [](const Document& lhs, const Document& rhs) {
-		const int error = 1e-6;
-		if (std::abs(lhs.relevance - rhs.relevance) < error) {
-			return lhs.rating > rhs.rating;
-		}
-		else {
-			return lhs.relevance > rhs.relevance;
-		}
-	});
-	if (matched_documents.size() > MAX_RESULT_DOCUMENT_COUNT) {
-		matched_documents.resize(MAX_RESULT_DOCUMENT_COUNT);
-	}
+    if (matched_documents.size() > MAX_RESULT_DOCUMENT_COUNT) {
+        matched_documents.resize(MAX_RESULT_DOCUMENT_COUNT);
+    }
 
-	return matched_documents;
+    return matched_documents;
 }
 
 template <typename DocumentPredicate>
