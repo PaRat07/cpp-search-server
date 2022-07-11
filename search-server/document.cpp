@@ -10,6 +10,16 @@ Document::Document(int id, double relevance, int rating)
         , rating(rating)
 {}
 
+Document::Document(const Document& doc) = default;
+
+Document::Document(Document&& doc_to_copy)
+        : id(std::exchange(doc_to_copy.id, 0))
+        , relevance(std::exchange(doc_to_copy.relevance, 0.0))
+        , rating(std::exchange(doc_to_copy.rating, 0))
+{
+
+}
+
 std::ostream& operator<<(std::ostream& out, const Document& document) {
     out << "{ "s
         << "document_id = "s << document.id << ", "s
@@ -18,6 +28,12 @@ std::ostream& operator<<(std::ostream& out, const Document& document) {
     return out;
 }
 
+Document& Document::operator=(Document&& doc_to_copy) {
+    id = std::exchange(doc_to_copy.id, 0);
+    relevance = std::exchange(doc_to_copy.relevance, 0.0);
+    rating = std::exchange(doc_to_copy.rating, 0);
+    return *this;
+}
 void PrintMatchDocumentResult(int document_id, const std::vector<std::string>& words, DocumentStatus status) {
     std::cout << "{ "s
               << "document_id = "s << document_id << ", "s

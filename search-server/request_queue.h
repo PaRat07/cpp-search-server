@@ -9,34 +9,33 @@
 
 class RequestQueue {
 public:
-	explicit RequestQueue(const SearchServer& search_server);
-	// сделаем "обёртки" для всех методов поиска, чтобы сохранять результаты для нашей статистики
-	template <typename DocumentPredicate>
-	std::vector<Document> AddFindRequest(const std::string& raw_query, DocumentPredicate document_predicate) {
-		auto ans = search_server_.FindTopDocuments(raw_query, document_predicate);
-		if (ans.empty()) {
-			++clear_ans;
-		}
+    explicit RequestQueue(const SearchServer& search_server);
+    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ "пїЅпїЅпїЅпїЅпїЅпїЅ" пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+    template <typename DocumentPredicate>
+    std::vector<Document> AddFindRequest(const std::string& raw_query, DocumentPredicate document_predicate) {
+        auto ans = search_server_.FindTopDocuments(raw_query, document_predicate);
+        if (ans.empty()) {
+            ++clear_ans;
+        }
 
-		requests_.push_back({ ans, ans.empty() });
-		UpdateStats();
-		return ans;
-	}
+        requests_.push_back({ ans, ans.empty() });
+        UpdateStats();
+        return ans;
+    }
 
-	std::vector<Document> AddFindRequest(const std::string& raw_query, DocumentStatus status);
+    std::vector<Document> AddFindRequest(const std::string& raw_query, DocumentStatus status);
 
-	std::vector<Document> AddFindRequest(const std::string& raw_query);
+    std::vector<Document> AddFindRequest(const std::string& raw_query);
 
-	int GetNoResultRequests() const;
+    int GetNoResultRequests() const;
 private:
-	struct QueryResult {
-		std::vector<Document> data;
-		bool empty;
-	};
-	std::deque<QueryResult> requests_;
-	const static int min_in_day_ = 1440;
-	int clear_ans = 0;
-	const SearchServer& search_server_;
-	// возможно, здесь вам понадобится что-то ещё
-	void UpdateStats();
+    struct QueryResult {
+        std::vector<Document> data;
+        bool empty;
+    };
+    std::deque<QueryResult> requests_;
+    const static int min_in_day_ = 1440;
+    int clear_ans = 0;
+    const SearchServer& search_server_;
+    void UpdateStats();
 };
