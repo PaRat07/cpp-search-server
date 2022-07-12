@@ -7,13 +7,13 @@ void RemoveDuplicates(SearchServer& search_server) {
 
     for (const int doc_id : ids) {
         std::set<std::string> words_in_doc;
-        for (const auto [word, _] : search_server.GetWordFrequencies(doc_id)) {
+        for (const auto& [word, _] : search_server.GetWordFrequencies(doc_id)) {
             words_in_doc.insert(word);
         }
         docs[words_in_doc].insert(doc_id);
     }
 
-    for (const auto [_, docs_id] : docs) {
+    for (const auto& [_, docs_id] : docs) {
         bool is_first = true;
         for (const int doc : docs_id) {
             if (is_first) {

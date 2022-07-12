@@ -9,6 +9,9 @@
 #include <numeric>
 #include <iostream>
 #include <stdexcept>
+#include <execution>
+#include <utility>
+#include <cassert>
 
 #include "string_processing.h"
 #include "read_input_functions.h"
@@ -44,6 +47,14 @@ public:
 
     void RemoveDocument(int document_id);
 
+    void RemoveDocument(const std::execution::parallel_policy& exec_pol, int document_id);
+
+    void RemoveDocument(const std::execution::sequenced_policy& exec_pol, int document_id);
+
+    std::tuple<std::vector<std::string>, DocumentStatus> MatchDocument(const std::execution::sequenced_policy, const std::string& raw_query, int document_id) const;
+
+    std::tuple<std::vector<std::string>, DocumentStatus> MatchDocument(const std::execution::parallel_policy, const std::string& raw_query, int document_id) const;
+
     std::tuple<std::vector<std::string>, DocumentStatus> MatchDocument(const std::string& raw_query, int document_id) const;
 private:
     struct DocumentData {
@@ -74,11 +85,13 @@ private:
     QueryWord ParseQueryWord(const std::string& text) const;
 
     struct Query {
-        std::set<std::string> plus_words;
-        std::set<std::string> minus_words;
+        std::vector<std::string> plus_words;
+        std::vector<std::string> minus_words;
     };
 
-    Query ParseQuery(const std::string& text) const;
+    Query ParseQuery(const std::execution::parallel_policy, const std::string& text) const;
+
+    Query ParseQuery(const std::execution::sequenced_policy, const std::string& text) const;
 
     // Existence required
     double ComputeWordInverseDocumentFreq(const std::string& word) const;
@@ -100,7 +113,7 @@ SearchServer::SearchServer(const StringContainer& stop_words)
 template <typename DocumentPredicate>
 
 std::vector<Document> SearchServer::FindTopDocuments(const std::string& raw_query, DocumentPredicate document_predicate) const {
-    const auto query = ParseQuery(raw_query);
+    const auto query = ParseQuery(std::execution::seq, raw_query);
     auto matched_documents = FindAllDocuments(query, document_predicate);
 
     std::sort(matched_documents.begin(), matched_documents.end(), [](const Document& lhs, const Document& rhs) {
