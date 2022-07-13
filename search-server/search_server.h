@@ -80,6 +80,9 @@ private:
         std::string data;
         bool is_minus;
         bool is_stop;
+        operator std::string () const {
+            return data;
+        }
     };
 
     QueryWord ParseQueryWord(const std::string& text) const;

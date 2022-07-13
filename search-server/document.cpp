@@ -28,6 +28,8 @@ std::ostream& operator<<(std::ostream& out, const Document& document) {
     return out;
 }
 
+Document& Document::operator=(const Document& doc_to_copy) = default;
+
 Document& Document::operator=(Document&& doc_to_copy) {
     id = std::exchange(doc_to_copy.id, 0);
     relevance = std::exchange(doc_to_copy.relevance, 0.0);

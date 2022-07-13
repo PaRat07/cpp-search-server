@@ -11,7 +11,6 @@ std::vector<std::vector<Document>> ProcessQueries(
     return ans;
 }
 
-template<typename ExecutionPolicy>
 std::list<Document> ProcessQueriesJoined(
         const SearchServer& search_server,
         const std::vector<std::string>& queries) {
@@ -25,6 +24,6 @@ std::list<Document> ProcessQueriesJoined(
         }
         return lhs;
     };
-    return std::transform_reduce(std::execution::seq, queries.begin(), queries.end(),
+    return std::transform_reduce(std::execution::par, queries.begin(), queries.end(),
                                  std::list<Document>(), merger, searcher);
 }
