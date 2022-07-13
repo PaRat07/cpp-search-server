@@ -26,16 +26,16 @@ public:
     template <typename StringContainer>
     SearchServer(const StringContainer& stop_words);
 
-    explicit SearchServer(const std::string& stop_words_text);
+    explicit SearchServer(const std::string_view stop_words_text);
 
-    void AddDocument(int document_id, const std::string& document, DocumentStatus status, const std::vector<int>& ratings);
+    void AddDocument(int document_id, const std::string_view document, DocumentStatus status, const std::vector<int>& ratings);
 
     std::vector<Document> FindTopDocuments(const std::string& raw_query, DocumentStatus status) const;
 
     std::vector<Document> FindTopDocuments(const std::string& raw_query) const;
 
     template <typename DocumentPredicate>
-    std::vector<Document> FindTopDocuments(const std::string& raw_query, DocumentPredicate document_predicate) const;
+    std::vector<Document> FindTopDocuments(const std::string_view raw_query, DocumentPredicate document_predicate) const;
 
     int GetDocumentCount() const;
 
@@ -51,11 +51,11 @@ public:
 
     void RemoveDocument(const std::execution::sequenced_policy& exec_pol, int document_id);
 
-    std::tuple<std::vector<std::string>, DocumentStatus> MatchDocument(const std::execution::sequenced_policy, const std::string& raw_query, int document_id) const;
+    std::tuple<std::vector<std::string>, DocumentStatus> MatchDocument(const std::execution::sequenced_policy, const std::string_view raw_query, int document_id) const;
 
-    std::tuple<std::vector<std::string>, DocumentStatus> MatchDocument(const std::execution::parallel_policy, const std::string& raw_query, int document_id) const;
+    std::tuple<std::vector<std::string>, DocumentStatus> MatchDocument(const std::execution::parallel_policy, const std::string_view raw_query, int document_id) const;
 
-    std::tuple<std::vector<std::string>, DocumentStatus> MatchDocument(const std::string& raw_query, int document_id) const;
+    std::tuple<std::vector<std::string>, DocumentStatus> MatchDocument(const std::string_view raw_query, int document_id) const;
 private:
     struct DocumentData {
         int rating;

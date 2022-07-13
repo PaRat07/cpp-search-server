@@ -108,10 +108,6 @@ SearchServer::Query SearchServer::ParseQuery(const std::execution::parallel_poli
     std::copy_if(std::execution::par, query_words.begin(), query_words.end(), result.minus_words.begin(), return_is_minus);
 
 
-    std::sort(std::execution::par, result.plus_words.begin(), result.plus_words.end());
-    result.plus_words.erase(std::unique(std::execution::par, result.plus_words.begin(), result.plus_words.end()), result.plus_words.end());
-    std::sort(std::execution::par, result.minus_words.begin(), result.minus_words.end());
-    result.minus_words.erase(std::unique(std::execution::par, result.minus_words.begin(), result.minus_words.end()), result.minus_words.end());
     return result;
 }
 
@@ -208,23 +204,25 @@ std::tuple<std::vector<std::string>, DocumentStatus> SearchServer::MatchDocument
 }
 
 std::tuple<std::vector<std::string>, DocumentStatus> SearchServer::MatchDocument(const std::execution::parallel_policy, const std::string& raw_query, int document_id) const {
-    if (!document_ids_.count(document_id)) {
-        throw std::out_of_range("document with this number doesn't exist");
-    }
-    const auto query = ParseQuery(std::execution::seq, raw_query);
+    const auto query = ParseQuery(std::execution::par, raw_query);
+    std::vector<std::string> doc(documents_words_with_freq_.at(document_id).size());
+    auto first_of_pair = [] (const std::pair<std::string, double>& pair) {
+        return pair.first;
+    };
+    std::transform(documents_words_with_freq_.at(document_id).begin(), documents_words_with_freq_.at(document_id).end(), doc.begin(), first_of_pair);
 
-    std::vector<std::string> matched_words;
-    auto is_in_doc = [&] (const std::string& query_word) {
-        return word_to_document_freqs_.count(query_word) == 0 ? false : word_to_document_freqs_.at(query_word).count(document_id);
+
+    auto is_in_doc = [&doc] (const std::string& query_word) {
+        return std::binary_search(doc.begin(), doc.end(), query_word);
     };
     if (std::any_of(std::execution::par, query.minus_words.begin(), query.minus_words.end(), is_in_doc)) {
-        return { matched_words, documents_.at(document_id).status };
+        return { std::vector<std::string>(), documents_.at(document_id).status };
     }
-    matched_words.resize(query.plus_words.size());
-    matched_words.erase(std::copy_if(std::execution::par, query.plus_words.begin(), query.plus_words.end(),
-                                     matched_words.begin(), is_in_doc), matched_words.end());
+    std::vector<std::string> matched_words(query.plus_words.size());
+    matched_words.erase(std::copy_if(query.plus_words.begin(), query.plus_words.end(), matched_words.begin(), is_in_doc), matched_words.end());
 
-
+    std::sort(matched_words.begin(), matched_words.end());
+    matched_words.erase(std::unique(matched_words.begin(), matched_words.end()), matched_words.end());
     return { matched_words, documents_.at(document_id).status };
 }
 
