@@ -97,8 +97,8 @@ private:
     QueryWord ParseQueryWord(const std::string_view text) const;
 
     struct Query {
-        std::vector<std::string> plus_words;
-        std::vector<std::string> minus_words;
+        std::vector<std::string_view> plus_words;
+        std::vector<std::string_view> minus_words;
     };
 
     Query ParseQuery(const std::execution::parallel_policy, const std::string_view text) const;
@@ -106,7 +106,7 @@ private:
     Query ParseQuery(const std::execution::sequenced_policy, const std::string_view text) const;
 
     // Existence required
-    double ComputeWordInverseDocumentFreq(const std::string& word) const;
+    double ComputeWordInverseDocumentFreq(const std::string_view word) const;
 
     template <typename DocumentPredicate>
     std::vector<Document> FindAllDocuments(const Query& query, DocumentPredicate document_predicate) const;
@@ -152,17 +152,19 @@ std::vector<Document> SearchServer::FindAllDocuments(const SearchServer::Query& 
         if (word_to_document_freqs_.count(word) == 0) {
             continue;
         }
-        const double inverse_document_freq = ComputeWordInverseDocumentFreq(word.data());
-        for (const auto[document_id, term_freq] : word_to_document_freqs_.at(word)) {
-            const auto& document_data = documents_.at(document_id);
-            if (document_predicate(document_id, document_data.status, document_data.rating)) {
-                document_to_relevance[document_id] += term_freq * inverse_document_freq;
+        if (word_to_document_freqs_.count(word)) {
+            const double inverse_document_freq = ComputeWordInverseDocumentFreq(word);
+            for (const auto [document_id, term_freq]: word_to_document_freqs_.at(word)) {
+                const auto &document_data = documents_.at(document_id);
+                if (document_predicate(document_id, document_data.status, document_data.rating)) {
+                    document_to_relevance[document_id] += term_freq * inverse_document_freq;
+                }
             }
         }
     }
 
     for (const std::string_view word : query.minus_words) {
-        if (word_to_document_freqs_.count(word.data()) == 0) {
+        if (word_to_document_freqs_.count(word) == 0) {
             continue;
         }
         for (const auto[document_id, _] : word_to_document_freqs_.at(word)) {

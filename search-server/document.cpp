@@ -42,7 +42,7 @@ void PrintMatchDocumentResult(int document_id, const vector<string_view>& words,
               << "status = "s << static_cast<int>(status) << ", "s
               << "words ="s;
     for (const string_view word : words) {
-        cout << ' ' << word;
+        cout << ' ' << word.data();
     }
     cout << "}"s << endl;
 }
