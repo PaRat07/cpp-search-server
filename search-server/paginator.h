@@ -1,6 +1,7 @@
 #pragma once
 #include <iostream>
 #include <cassert>
+#include <vector>
 
 template <typename Iterator>
 class IteratorRange {

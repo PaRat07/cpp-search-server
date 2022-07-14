@@ -6,6 +6,7 @@
 #include <list>
 
 #include "search_server.h"
+#include "document.h"
 
 std::vector<std::vector<Document>> ProcessQueries(
         const SearchServer& search_server,
