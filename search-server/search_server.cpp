@@ -93,7 +93,7 @@ SearchServer::QueryWord SearchServer::ParseQueryWord(std::string_view text) cons
     return { text, is_minus, IsStopWord(text) };
 }
 
-SearchServer::Query SearchServer::ParseQuery(const std::execution::parallel_policy, const std::string_view text) const {
+SearchServer::Query SearchServer::ParseQuery(const std::execution::parallel_policy&, const std::string_view text) const {
     Query result;
     const auto words = SplitIntoWords(text);
     std::vector<QueryWord> query_words(words.size());
@@ -108,7 +108,7 @@ SearchServer::Query SearchServer::ParseQuery(const std::execution::parallel_poli
     };
     result.plus_words.resize(query_words.size());
     std::copy_if(std::execution::par, query_words.begin(), query_words.end(),
-                                         result.plus_words.begin(), return_is_plus);
+                 result.plus_words.begin(), return_is_plus);
 
     result.minus_words.resize(query_words.size());
     std::copy_if(std::execution::par, query_words.begin(), query_words.end(), result.minus_words.begin(), return_is_minus);
@@ -117,7 +117,7 @@ SearchServer::Query SearchServer::ParseQuery(const std::execution::parallel_poli
     return result;
 }
 
-SearchServer::Query SearchServer::ParseQuery(const std::execution::sequenced_policy, const std::string_view text) const {
+SearchServer::Query SearchServer::ParseQuery(const std::execution::sequenced_policy&, const std::string_view text) const {
     Query result;
     for (const std::string_view word : SplitIntoWords(text)) {
         const auto query_word = ParseQueryWord(word);
