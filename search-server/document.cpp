@@ -38,9 +38,9 @@ Document& Document::operator=(Document&& doc_to_copy) {
 }
 void PrintMatchDocumentResult(int document_id, const vector<string_view>& words, DocumentStatus status) {
     cout << "{ "s
-              << "document_id = "s << document_id << ", "s
-              << "status = "s << static_cast<int>(status) << ", "s
-              << "words ="s;
+         << "document_id = "s << document_id << ", "s
+         << "status = "s << static_cast<int>(status) << ", "s
+         << "words ="s;
     for (const string_view word : words) {
         cout << ' ' << word.data();
     }
