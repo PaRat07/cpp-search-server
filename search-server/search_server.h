@@ -224,13 +224,11 @@ std::vector<Document> SearchServer::FindAllDocuments(const std::execution::paral
     ConcurrentMap<int, double> document_to_relevance(100);
     std::for_each(std::execution::par, query.plus_words.begin(), query.plus_words.end(), [&](std::string_view word){
         if (word_to_document_freqs_.count(word) > 0) {
-            if (word_to_document_freqs_.count(word)) {
-                const double inverse_document_freq = ComputeWordInverseDocumentFreq(word);
-                for (const auto [document_id, term_freq]: word_to_document_freqs_.at(word)) {
-                    const auto &document_data = documents_.at(document_id);
-                    if (document_predicate(document_id, document_data.status, document_data.rating)) {
-                        document_to_relevance[document_id].ref_to_value += term_freq * inverse_document_freq;
-                    }
+            const double inverse_document_freq = ComputeWordInverseDocumentFreq(word);
+            for (const auto [document_id, term_freq]: word_to_document_freqs_.at(word)) {
+                const auto &document_data = documents_.at(document_id);
+                if (document_predicate(document_id, document_data.status, document_data.rating)) {
+                    document_to_relevance[document_id].ref_to_value += term_freq * inverse_document_freq;
                 }
             }
         }
@@ -244,11 +242,11 @@ std::vector<Document> SearchServer::FindAllDocuments(const std::execution::paral
         }
     });
 
-    auto vec_document_to_relevance = document_to_relevance.BuildVecPair();
-    std::vector<Document> matched_documents(vec_document_to_relevance.size());
-    std::transform(std::execution::par, vec_document_to_relevance.begin(), vec_document_to_relevance.end(), matched_documents.begin(), [&] (const std::pair<int, int> &pair) {
-        return Document(pair.first, pair.second, documents_.at(pair.first).rating);
-    });
+    auto vec_document_to_relevance = document_to_relevance.BuildOrdinaryMap();
+    std::vector<Document> matched_documents;
+    for (const auto[document_id, relevance] : vec_document_to_relevance) {
+        matched_documents.emplace_back(document_id, relevance, documents_.at(document_id).rating);
+    }
     return matched_documents;
 }
 
